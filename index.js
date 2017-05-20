@@ -18,10 +18,12 @@ app.use(express.static(__dirname))
 // socket连接
 io.on('connection', function (socket) {
   console.log('一个新连接')
-  socket.emit('msg', {pageIndex: '123' })
-  socket.on('news', function () {
-    console.log(123)
-    socket.emit('msg', {pageIndex: '123' })
+  socket.on('random', function (res) {
+    console.log(res.arr)
+    socket.broadcast.emit('msg', {go: 'yes',arr: res.arr})
+  })
+  socket.on('init', function () {
+    socket.broadcast.emit('msg', {go: 'no' })
   })
 })
 http.listen(port, function () {
@@ -29,10 +31,6 @@ http.listen(port, function () {
 })
 // 配置api路径
 // get请求示例:http://172.0.0.1:3000/c/page1
-app.use('/c/', router)
 app.get('/', function (req, res) {
-  var pageIndex = req.params.pageIndex
-  // 向展示端进行命令广播
-  io.sockets.emit('msg', {pageIndex: '123' })
   res.sendfile('index.html')
 })
