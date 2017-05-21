@@ -1,43 +1,76 @@
 <template>
-    <div>
+    <div class='content'>
         <div class="cardList" v-for='item in arr'>
             <div class="initCard">
-                <div :class="[is_rotate ? 'infadeIn' : 'infadeOut']"></div>
+                <div :class="[item.url!=undefined ? 'infadeIn' : 'infadeOut']"></div>
             </div>
             <div class="rotateCard">
-                <div :class="[is_rotate ? 'infadeOut' : 'infadeIn']">{{item}}</div>
+                <div :class="[item.url==undefined ? 'infadeOut' : 'infadeIn']">{{item}}</div>
             </div>
         </div>
+        <div class='select-role' v-show='select_role'>
+            <div class='role' v-for='item in select' @click='selectItem(item.url)'>
+                <img :src='item.url'/>
+            </div>
+            <div class='new-role'>
+                <upload></upload>
+            </div>
+        </div>
+        <div @click='selectEmit' v-show='emit' id='emit'>点击随机</div>
+        <div id='hide' v-show='hide'></div>
    </div>
 </template>
 <script>
+     import upload from './../component/upload-img.vue'
     export default {
         data(){
             return{
                 is_rotate : false,
-                arr :['','','','','','','','','','','']
+                arr :['','','','','','','','','',''],
+                select:[{url:1}],
+                hide:true,
+                url:'',
+                select_role:true,
+                emit:false
             }
         },
         mounted(){
             var that = this;
-            var iosocket = io.connect('http://localhost:3000/');
             iosocket.on('connect', function () {
-                iosocket.on('msg', function(message) {
-                    if(message.go=='yes'){
-                        that.rotateCard();
-                        that.arr = message.arr;
-                    }else{
-                        that.rotateCardInit();
-                    }
+                iosocket.on('role', function(message) {
+                        that.arr = message.roleArr;
+                        if(message.type==1){
+                            this.emit = true;
+                        }
                 });
+                iosocket.on('selectRole',function(res){
+                    that.select = res.selectRole;
+                })
+                iosocket.on('send-img',function(res){
+                    alert(res.ms);
+                })
             });
+
+        },
+        components:{
+            upload
         },
         methods:{
-            rotateCard(){
-                 this.is_rotate = true;
+            selectItem(url){   
+                this.url = url;
+                this.hide = false;
+                this.emit = true;
+                this.select_role = false;
             },
-            rotateCardInit(){
-                this.is_rotate = false;
+            selectEmit(){
+                var that = this;
+                this.emit = false;
+                iosocket.emit('random',{
+                    url:that.url
+                })
+                iosocket.on('random',function(res){
+                    alert(res.ms)
+                })
             }
         },
     }
@@ -51,12 +84,58 @@
         margin:20px auto;
         height:100%;
     }   
+    #emit{
+        position:absolute;
+        left:0;
+        right:0;
+        margin:0 auto;
+        top:250px;
+        font-size: 30px;
+        background: #00a6c6;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 5px;
+        width: 200px;
+        line-height: 40px;
+    }
+    #hide{
+        background:#000;
+        opacity:.7;
+        width:100%;
+        height:100%;
+        z-index:10;
+    }
     .cardList{
         width:200px;
         height:310px;
         float:left;
         margin:10px 15px;
         position:relative;
+    }
+    .select-role{
+        position:absolute;
+        top:50px;
+        width:800px;
+        left:0;
+        right:0;
+        margin:0 auto;
+        z-index:11;
+        background:#333;
+        min-height:200px;
+    }
+    .select-role img{
+        width:100%;
+        height:100%;
+    }
+    .select-role>div{
+        width:160px;
+        float:left;
+        height:200px;
+    }
+    .content{
+        width: 100%;
+        position:relative;
+        height: 100%;
     }
     .initCard > div{
         width:200px;

@@ -1,0 +1,7 @@
+{
+    "host": "119.29.140.135",
+    "user": "root",
+    "password": "123456",
+    "database": "lol",
+    "port":"3306"
+}
