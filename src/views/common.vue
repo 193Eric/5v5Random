@@ -1,11 +1,11 @@
-<template>
+﻿<template>
     <div class='content'>
         <div class="cardList" v-for='item in arr'>
             <div class="initCard">
                 <div :class="[item.url!=undefined ? 'infadeIn' : 'infadeOut']"></div>
             </div>
             <div class="rotateCard">
-                <div :class="[item.url==undefined ? 'infadeOut' : 'infadeIn']">{{item}}</div>
+                <div :class="[item.url!=undefined ? 'infadeOut' : 'infadeIn']"><img :src='item.url'></div>
             </div>
         </div>
         <div class='select-role' v-show='select_role'>
@@ -27,7 +27,7 @@
             return{
                 is_rotate : false,
                 arr :['','','','','','','','','',''],
-                select:[{url:1}],
+                select:[],
                 hide:true,
                 url:'',
                 select_role:true,
@@ -38,13 +38,13 @@
             var that = this;
             iosocket.on('connect', function () {
                 iosocket.on('role', function(message) {
-                        that.arr = message.roleArr;
+                        that.arr = message.role;
                         if(message.type==1){
-                            this.emit = true;
+                            that.emit = true;
                         }
                 });
                 iosocket.on('selectRole',function(res){
-                    that.select = res.selectRole;
+                    that.select = res.selectRole; 	
                 })
                 iosocket.on('send-img',function(res){
                     alert(res.ms);
@@ -98,6 +98,10 @@
         width: 200px;
         line-height: 40px;
     }
+    .rotateCard img{
+	width:100%;
+	height:100%;
+}	
     #hide{
         background:#000;
         opacity:.7;
@@ -107,7 +111,7 @@
     }
     .cardList{
         width:200px;
-        height:310px;
+        height:300px;
         float:left;
         margin:10px 15px;
         position:relative;
@@ -139,7 +143,7 @@
     }
     .initCard > div{
         width:200px;
-        height:310px;
+        height:300px;
         background:url(../images/card.png) no-repeat;
         background-size:100%;
         position:absolute;
@@ -148,7 +152,7 @@
     }
     .rotateCard > div{
         width:200px;
-        height:310px;
+        height:300px;
         line-height:310px;
         text-align:center;
         font-size:24px;

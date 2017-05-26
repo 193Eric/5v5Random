@@ -1,12 +1,12 @@
-var express = require('express')
+﻿var express = require('express')
 var request = require('request')
 var path = require('path')
 var bodyParser = require('body-parser')
 var app = express()
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
-var roleArr = [];
-var site = [1,2,3,4,5,6,7,8,9,10];
+var roleArr = ['','','','','','','','','',''];
+var site = [0,1,2,3,4,5,6,7,8,9];
 var selectRole = [];
 var code = '';
 // 路径简单，直接在这里配置
@@ -27,33 +27,42 @@ app.set('views', './html')
 app.use(bodyParser.urlencoded({ 'limit': '10000kb' }))
 app.use(bodyParser.json())
 app.use(express.static(__dirname))
-function getAll(){
+function getAll(socket){
   sql.query('select * from user', function (err, rows) {
-    selectRole = rows;
+    selectRole = rows;	
     code = rows.length;
-    socket.broadcast.emit('selectRole', { selectRole: selectRole })
+console.log(code)
+	var data = [];
+    for (var i = 0; i < rows.length; i++) {
+        data[i] = {
+          url: rows[i].url,
+        }
+      }
+    io.sockets.emit('selectRole', { selectRole: data})
  })
 }
 // socket连接
 io.on('connection', function (socket) {
-  getAll()
+  getAll(socket)
   socket.on('random', function (res) {
     if(site.length>0){
-      var num = Math.floor(Math.random() * site.length);
+      var num = Math.ceil(Math.random() * site.length)-1;
       var roleNum = site[num];
       site.splice(num,1)
       roleArr[roleNum] = {
         url: res.url
       }
-      socket.broadcast.emit('role', { role: roleArr,type:0 })
+      console.log(roleArr)
+      io.sockets.emit('role', { role: roleArr,type:0 })
     }else{
       socket.emit('random',{ms:'人数已满'})
+      io.sockets.emit('role', { role: roleArr,type:0 })	
     }
   })
   socket.on('init', function () {
-    roleArr = [];
-    var site = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    socket.broadcast.emit('role', {role: roleArr ,type:1})
+    roleArr = ['','','','','','','','','',''];
+    site = [0,1, 2, 3, 4, 5, 6, 7, 8, 9];
+    io.sockets.emit('role', {role: roleArr ,type:1})
   })
   socket.on('send-img',function(req){
     var imgData = req.img
@@ -65,13 +74,13 @@ io.on('connection', function (socket) {
       if (err) {
         console.log('保存失败')
       } else {
-        var url = 'http://http://119.29.140.135:3000/images/'+time+'.png';
+        var url = 'http://119.29.140.135:3000/images/'+time+'.png';
         sql.query('insert into user set ?', { id: code-0+1,url:url}, function (err) {
           if (err) {
             console.log('保存失败')
           } else {
             console.log('保存成功')
-            getAll();
+            getAll(socket);
             socket.emit('send-img', { code: 1, ms: '保存成功' })
           }
         })
