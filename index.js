@@ -27,7 +27,7 @@ io.on('connection', function (socket) {
   })
 })
 http.listen(port, function () {
-  console.log('正在监听3000端口')
+  console.log('正在监听3000端 口')
 })
 // 配置api路径
 // get请求示例:http://172.0.0.1:3000/c/page1
